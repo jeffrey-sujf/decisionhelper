@@ -1,2 +1,2 @@
 # decisionhelper
-A web app to help make decisions
+An elegant option that helps make decisions. (电子抓阄)
