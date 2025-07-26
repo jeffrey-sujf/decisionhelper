@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Helper</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@700&family=Special+Elite&family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfbf7; /* A warm, off-white background */
+            background-image: radial-gradient(circle at center, transparent 75%, rgba(0, 0, 0, 0.02));
+            touch-action: manipulation;
+        }
+        /* This font stack attempts the typewriter font first, then falls back to a CJK-supported font. */
+        .font-display {
+            font-family: 'Special Elite', 'LXGW WenKai TC', cursive;
+        }
+        .font-lxgw {
+            font-family: 'LXGW WenKai TC', cursive;
+            font-weight: 700;
+        }
+        
+        /* --- Custom Colors --- */
+        .bg-brand { background-color: #6e2e21; }
+        .hover\:bg-brand-dark:hover { background-color: #57251a; }
+        .text-brand { color: #6e2e21; }
+        .shadow-brand { box-shadow: 0 10px 15px -3px rgba(17, 24, 39, 0.2), 0 4px 6px -2px rgba(17, 24, 39, 0.2); }
+
+        /* --- Animation Styles --- */
+        /* New rise-in animation for notes appearing */
+        @keyframes rise-in {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .rise-in-animation {
+            animation: rise-in 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        
+        .fade-in-animation {
+             animation: rise-in 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes modal-pop-in {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        /* --- Dismissal Animations --- */
+        @keyframes fade-out {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        @keyframes modal-pop-out {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.95); }
+        }
+        #result-modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .is-closing {
+            animation: fade-out 0.3s ease-out forwards;
+        }
+        .is-closing #modal-content {
+            animation: modal-pop-out 0.3s ease-out forwards;
+        }
+
+        /* --- New Simple Shuffle Animation --- */
+        @keyframes shuffle {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-5px, 10px) rotate(-3deg); }
+            40% { transform: translate(10px, -5px) rotate(2deg); }
+            60% { transform: translate(-10px, -10px) rotate(5deg); }
+            80% { transform: translate(5px, 5px) rotate(-1deg); }
+        }
+
+        .shuffling .note-item {
+            animation: shuffle 1s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+        }
+
+        /* Paper texture for the modal with no vignette */
+        .paper-corners {
+            position: relative;
+            background-color: #fdfaef;
+        }
+        .paper-corners::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url("https://www.transparenttextures.com/patterns/paper-fibers.png");
+            mask-image: radial-gradient(circle at center, black 0%, transparent 70%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0%, transparent 70%);
+        }
+        .modal-content-wrapper {
+            position: relative;
+        }
+    </style>
+</head>
+<body class="text-stone-800 flex flex-col items-center min-h-screen p-4">
+
+    <div class="w-full max-w-md mx-auto mt-8">
+        <!-- App Title -->
+        <header class="relative text-center mb-8 h-48">
+            <div class="absolute inset-x-0 top-1/2 -translate-y-[45%]">
+                <h1 class="relative z-10 text-5xl font-extrabold text-stone-900 tracking-tighter">DecisionHelper</h1>
+                <div class="absolute inset-x-0 top-0 flex items-center -mt-10">
+                    <span class="w-1/2 text-center font-lxgw text-9xl text-stone-300 opacity-60 z-0 select-none">抓</span>
+                    <span class="w-1/2 text-center font-lxgw text-9xl text-stone-300 opacity-60 z-0 select-none">鬮</span>
+                </div>
+            </div>
+             <p class="absolute bottom-0 inset-x-0 text-stone-500 mt-6">Let fate type out your next move.</p>
+        </header>
+
+        <!-- Input Form -->
+        <div class="mb-6">
+            <form id="add-note-form" class="flex gap-3">
+                <input type="text" id="note-input" placeholder="Type a choice..." class="flex-grow bg-white border-2 border-stone-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-stone-500 font-display text-lg">
+                <button type="submit" class="bg-stone-800 hover:bg-stone-900 text-white font-bold py-3 px-5 rounded-lg transition-colors">Add</button>
+            </form>
+        </div>
+
+        <!-- Draw Button -->
+        <div class="text-center mb-8">
+            <button id="draw-button" class="bg-stone-900 hover:bg-black text-white font-bold py-4 px-12 rounded-full text-lg shadow-brand transition-all transform hover:scale-105 disabled:bg-stone-400 disabled:shadow-none disabled:cursor-not-allowed w-full">
+                Draw a Note
+            </button>
+            <p id="draw-helper-text" class="text-stone-400 mt-3 text-sm">Or just shake your phone!</p>
+        </div>
+
+        <!-- Notes List -->
+        <div id="notes-container" class="space-y-3 min-h-[100px]">
+            <!-- Notes will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden">
+        <div id="modal-content" class="rounded-lg shadow-2xl w-full max-w-lg text-center paper-corners border-4 border-white/50 overflow-hidden">
+            <div class="modal-content-wrapper p-10">
+                <p class="text-stone-500 text-md mb-4">The choice is...</p>
+                <h2 id="result-text" class="font-display text-5xl font-bold text-brand mb-10 min-h-[60px]"></h2>
+                <div class="flex justify-center gap-4">
+                    <!-- Put Back Button -->
+                    <button id="put-back-button" class="flex items-center gap-2 bg-stone-200 hover:bg-stone-300 text-stone-700 font-semibold py-3 px-6 rounded-lg transition-colors">
+                        Put Back
+                    </button>
+                    <!-- Accept Button -->
+                    <button id="accept-button" class="flex items-center gap-2 bg-brand hover:bg-brand-dark text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                        Accept
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Toast -->
+    <div id="toast" class="fixed bottom-5 bg-red-500 text-white py-2 px-4 rounded-lg text-sm opacity-0 transition-opacity duration-300">
+        You need at least 2 choices to draw!
+    </div>
+
+
+    <script>
+        // --- DOM Elements ---
+        const addNoteForm = document.getElementById('add-note-form');
+        const noteInput = document.getElementById('note-input');
+        const notesContainer = document.getElementById('notes-container');
+        const drawButton = document.getElementById('draw-button');
+        const drawHelperText = document.getElementById('draw-helper-text');
+        
+        const resultModal = document.getElementById('result-modal');
+        const modalContent = document.getElementById('modal-content');
+        const resultText = document.getElementById('result-text');
+        const acceptButton = document.getElementById('accept-button');
+        const putBackButton = document.getElementById('put-back-button');
+        const toast = document.getElementById('toast');
+
+        // --- State ---
+        const savedNotes = localStorage.getItem('decisionHelperNotes');
+        let notes = (savedNotes && JSON.parse(savedNotes).length > 0) ? JSON.parse(savedNotes) : ['吃披萨', 'Go for a run'];
+        let lastDrawnNote = null; 
+        let isDrawing = false;
+        let motionDetectionInitialized = false;
+        // **FIX:** Moved lastShake timestamp to the global scope to persist across events.
+        let lastShake = 0; 
+
+        // --- Functions ---
+        
+        function saveNotes() {
+            localStorage.setItem('decisionHelperNotes', JSON.stringify(notes));
+        }
+
+        function renderNotes(isRestoring = false) {
+            notesContainer.innerHTML = '';
+            
+            if (notes.length === 0) {
+                notesContainer.innerHTML = `<p class="text-center text-stone-400 font-display">No choices added yet.</p>`;
+            } else {
+                notes.forEach((note, index) => {
+                    const noteElement = document.createElement('div');
+                    const animationClass = isRestoring ? 'rise-in-animation' : 'fade-in-animation';
+                    noteElement.className = `note-item flex items-center justify-between bg-white border-2 border-stone-200 p-4 rounded-lg shadow-sm ${animationClass}`;
+                    noteElement.innerHTML = `
+                        <span class="font-display text-xl text-stone-700 break-all">${escapeHTML(note)}</span>
+                        <button class="text-stone-400 hover:text-red-500 ml-2 flex-shrink-0 transition-colors" onclick="removeNote(${index})">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    `;
+                    notesContainer.appendChild(noteElement);
+                });
+            }
+            updateDrawButtonState();
+        }
+        
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
+        function addNote(e) {
+            e.preventDefault();
+            if (isDrawing) return;
+            const noteText = noteInput.value.trim();
+            if (noteText) {
+                notes.push(noteText);
+                noteInput.value = '';
+                saveNotes();
+                renderNotes();
+            }
+        }
+
+        function removeNote(index) {
+            if (isDrawing) return;
+            notes.splice(index, 1);
+            saveNotes();
+            renderNotes();
+        }
+        
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+            }, 2000);
+        }
+
+        function drawNote() {
+            if (notes.length < 2 || isDrawing) {
+                if (notes.length < 2) showToast('You need at least 2 choices to draw!');
+                return;
+            }
+
+            isDrawing = true;
+            drawButton.disabled = true;
+            
+            const randomIndex = Math.floor(Math.random() * notes.length);
+            lastDrawnNote = { text: notes[randomIndex], index: randomIndex };
+
+            notesContainer.classList.add('shuffling');
+            
+            setTimeout(() => {
+                notes.splice(randomIndex, 1);
+                resultText.textContent = lastDrawnNote.text;
+                
+                notesContainer.style.visibility = 'hidden';
+
+                modalContent.style.animation = 'none'; 
+                modalContent.offsetHeight;
+                modalContent.style.animation = 'modal-pop-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards';
+
+                resultModal.classList.remove('hidden', 'is-closing');
+                
+                notesContainer.classList.remove('shuffling');
+            }, 1000); 
+        }
+
+        function acceptChoice() {
+            saveNotes();
+            closeModalAndReset(false);
+        }
+
+        function putBackChoice() {
+            closeModalAndReset(true);
+        }
+
+        function closeModalAndReset(shouldPutBack) {
+            resultModal.classList.add('is-closing');
+            
+            notesContainer.innerHTML = ''; 
+
+            setTimeout(() => {
+                if (shouldPutBack && lastDrawnNote) {
+                    notes.splice(lastDrawnNote.index, 0, lastDrawnNote.text);
+                }
+                lastDrawnNote = null;
+
+                resultModal.classList.add('hidden');
+                isDrawing = false;
+                
+                notesContainer.style.visibility = 'visible';
+                
+                renderNotes(true); 
+            }, 300); 
+        }
+        
+        function updateDrawButtonState() {
+            const isDisabled = notes.length < 2 || isDrawing;
+            drawButton.disabled = isDisabled;
+            drawHelperText.classList.toggle('hidden', notes.length < 2);
+        }
+
+        // --- Universal Shake Detection ---
+        // **FIX:** Rewrote the handler to be a simple function, not a closure factory.
+        function handleShake(event) {
+            // **FIX:** Get the current time inside the handler.
+            const now = Date.now();
+            const shakeThreshold = 20;
+
+            if (now - lastShake < 3000 || isDrawing || !resultModal.classList.contains('hidden')) {
+                return;
+            }
+
+            const { x, y, z } = event.accelerationIncludingGravity;
+            const magnitude = Math.sqrt(x * x + y * y + z * z);
+
+            if (magnitude > shakeThreshold) {
+                drawNote();
+                // **FIX:** Update the global lastShake timestamp.
+                lastShake = now;
+            }
+        }
+
+        function initShakeDetection() {
+            if (motionDetectionInitialized) return;
+            motionDetectionInitialized = true;
+
+            const startListener = () => {
+                window.addEventListener('devicemotion', handleShake);
+                drawHelperText.textContent = "Or just shake your phone!";
+            };
+
+            // Check for iOS 13+ permission requirement
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(state => {
+                        if (state === 'granted') {
+                            startListener();
+                        } else {
+                            drawHelperText.textContent = "Shake permission denied.";
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                // For Android and other devices
+                startListener();
+            }
+        }
+
+        // --- Event Listeners ---
+        addNoteForm.addEventListener('submit', addNote);
+        
+        drawButton.addEventListener('click', () => {
+            // The first time the user clicks, we try to set up shake detection.
+            if (!motionDetectionInitialized) {
+                initShakeDetection();
+            }
+            // The click always triggers a draw.
+            drawNote();
+        });
+
+        acceptButton.addEventListener('click', acceptChoice);
+        putBackButton.addEventListener('click', putBackChoice);
+        
+        resultModal.addEventListener('click', (e) => {
+            if (e.target === resultModal) {
+                putBackChoice();
+            }
+        });
+
+        // --- Initial Render ---
+        renderNotes();
+        window.removeNote = removeNote;
+
+    </script>
+</body>
+</html>
