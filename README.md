@@ -5,8 +5,6 @@ This web app is a modern, digital take on the traditional practice of 抓阄 (dr
 ### Access Here
 🔗 https://decisionzhuajiu.netlify.app/
 
-<img width="785" height="599" alt="image" src="https://github.com/user-attachments/assets/3fb63c1f-981d-4cf6-b053-89b846e4a72b" />
-
 ### The Concept
 Inspired by the simple act of writing choices on slips of paper and drawing one at random, this app provides a clean, tactile, and delightful digital experience. Add your options, give your phone a shake, and let chance decide!
 
@@ -18,6 +16,8 @@ Shake to Draw: The core feature! Simply shake your mobile device to draw a rando
 Multi-Language Support: The app fully supports Unicode, so you can write your choices in English, CJK, or any other language.
 
 Persistent Choices: Your list of options is automatically saved in your browser's local storage, so they'll be waiting for you the next time you visit.
+
+<img width="2492" height="1250" alt="image" src="https://github.com/user-attachments/assets/bffa6570-5dc4-4236-9f51-d67f178bf7d2" />
 
 ### How to Use
 Add Your Choices: Type any option into the input box and click "Add".
