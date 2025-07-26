@@ -30,7 +30,4 @@ Accept: The choice is made, and the note is removed from the current session.
 
 Put Back: Return the note to the pool and draw again.
 
-### Structure
-HTML: For the core structure.
-CSS: For modern and responsive styling.
-JavaScript: To power all the interactive logic, animations, and the shake-detection feature.
+Now add to your homescreen and have fun!
