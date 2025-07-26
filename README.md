@@ -2,6 +2,11 @@
 Have you ever been stuck between choices and wasted energy on unimportant decisions? 
 This web app is a modern, digital take on the traditional practice of 抓阄 (drawing lots), designed to be a fun and simple tool to help you make daily decisions.
 
+### Access Here
+🔗 https://decisionzhuajiu.netlify.app/
+
+<img width="785" height="599" alt="image" src="https://github.com/user-attachments/assets/3fb63c1f-981d-4cf6-b053-89b846e4a72b" />
+
 ### The Concept
 Inspired by the simple act of writing choices on slips of paper and drawing one at random, this app provides a clean, tactile, and delightful digital experience. Add your options, give your phone a shake, and let chance decide!
 
